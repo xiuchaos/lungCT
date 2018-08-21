@@ -47,8 +47,7 @@ To spoonfeed a neural network with examples with a better snr and a more direct 
 **step4_train_submissions.py**
 	Based on the per-patient csv’s the masses.csv and other metadata we will train an **xgboost model** to generate submissions. 
 
-	There are 3 levels of submissions. 
-		First the per-model submissions. (level1). Different models are combined in level2, and Daniel’s submissions are added. These level 2 submissions will be combined (averaged) into one final submission. Below are the different models that will be generated/combined.
+	There are 3 levels of submissions. First the per-model submissions. (level1). Different models are combined in level2, and Daniel’s submissions are added. These level 2 submissions will be combined (averaged) into one final submission. Below are the different models that will be generated/combined.
 
 	**Level 1**
 	Luna16_fs (trained on full luna16 set)
