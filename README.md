@@ -1,5 +1,11 @@
 # lungCT
-> Following [Julian's Blog](http://juliandewit.github.io/kaggle-ndsb2017/)
+
+Second Prize [Julian's Blog] http://juliandewit.github.io/kaggle-ndsb2017/
+First  Prize [Liao Fangzhou] https://arxiv.org/pdf/1711.08324v1.pdf   
+                             https://github.com/lfz/DSB2017
+
+Related Blog: https://www.jianshu.com/p/50158f8daf0d    
+              https://blog.csdn.net/qq_25624231/article/details/79632072
 start from Aug 20.
 
 **Goal**
@@ -9,6 +15,12 @@ To predict the development of lung cancer in a patient given a set of CT images.
 To spoonfeed a neural network with examples with a better snr and a more direct relationship between the labels and the features. 
 	* Train a network to detect nodules and predict the malignancy of detected nodules.
 	* Estimate the chance that the patient would develop a cancer given this information and some other features.
+
+**Papers**
+ [U-Net:Convolutional Networks for Biomedical Image Segmentation](https://pdfs.semanticscholar.org/0704/5f87709d0b7b998794e9fa912c0aba912281.pdf)
+ [Multi-region two-stream R-CNN for a action detection](https://hal.inria.fr/hal-01349107v2/document)
+ [Evaluate the Malignancy of Pulmonary Nodules Using the 3D Deep Leaky Noisy-or Network](https://arxiv.org/pdf/1711.08324v1.pdf)
+
 
 
 
@@ -47,10 +59,9 @@ To spoonfeed a neural network with examples with a better snr and a more direct 
 **step4_train_submissions.py**
 	Based on the per-patient csv’s the masses.csv and other metadata we will train an **xgboost model** to generate submissions. 
 
-	There are 3 levels of submissions. 
-		First the per-model submissions. (level1). Different models are combined in level2, and Daniel’s submissions are added. These level 2 submissions will be combined (averaged) into one final submission. Below are the different models that will be generated/combined.
+	There are 3 levels of submissions. First the per-model submissions. (level1). Different models are combined in level2, and Daniel’s submissions are added. These level 2 submissions will be combined (averaged) into one final submission. Below are the different models that will be generated/combined.
 
-	**Level 1**
+	Level 1
 	Luna16_fs (trained on full luna16 set)
 	Luna16_ndsbposneg v1 (trained on luna16 + manual pos/neg labels in ndsb)
 	Luna16_ndsbposneg v2 (trained on luna16 + manual pos/neg labels in ndsb)
@@ -58,10 +69,17 @@ To spoonfeed a neural network with examples with a better snr and a more direct 
 	Daniel model 2
 	posneg, daniel will be averaged into one level 2 model
 
-	**Level 2**
+	Level 2
 	Luna16_fs
 	Luna16_ndsbposneg
 	Daniel
-
-
 These 3 models will be averaged into 1 final_submission.csv
+
+
+### 数据集
+训练集由LUNA16数据集（the Lung Nodule Analysis 2016）和NDSB3（Data Science Bowl 2017）数据集两部分组成.
+LUNA16 888个病例，标记了1186个肺结节；
+NDSB3: 1397 train，198 validate，506 test，且人工标注了训练集中754个结节和验证集中78个结节。
+
+LUNA16存在许多较小注释结节，且临床经验认为直径6mm以下的肺结节无危险。但NDSB3数据集中，存在较多的大直径结节且结节多与主支气管相连。因此，针对两个数据集的差异，需去除LUNA16数据集中直径6mm的结节，同时对NDSB3数据集进行人工标注。
+
