@@ -1,22 +1,23 @@
 # lungCT
 
 Second Prize [Julian's Blog] http://juliandewit.github.io/kaggle-ndsb2017/
+
 First  Prize [Liao Fangzhou] https://arxiv.org/pdf/1711.08324v1.pdf   
-                             https://github.com/lfz/DSB2017
+							https://github.com/lfz/DSB2017
 
 Related Blog: https://www.jianshu.com/p/50158f8daf0d    
               https://blog.csdn.net/qq_25624231/article/details/79632072
 start from Aug 20.
 
-**Goal**
-	To predict the development of lung cancer in a patient given a set of CT images.
+### Goal
+	* To predict the development of lung cancer in a patient given a set of CT images.
 
-**Solution**
+### Solution
 	To spoonfeed a neural network with examples with a better snr and a more direct relationship between the labels and the features. 
-	* Train a network to detect nodules and predict the malignancy of detected nodules.
-	* Estimate the chance that the patient would develop a cancer given this information and some other features.
+	+ Train a network to detect nodules and predict the malignancy of detected nodules.
+	+ Estimate the chance that the patient would develop a cancer given this information and some other features.
 
-**Papers**
+### Papers
  	[U-Net:Convolutional Networks for Biomedical Image Segmentation](https://pdfs.semanticscholar.org/0704/5f87709d0b7b998794e9fa912c0aba912281.pdf)
  	[Multi-region two-stream R-CNN for a action detection](https://hal.inria.fr/hal-01349107v2/document)
  	[Evaluate the Malignancy of Pulmonary Nodules Using the 3D Deep Leaky Noisy-or Network](https://arxiv.org/pdf/1711.08324v1.pdf)
@@ -33,7 +34,7 @@ start from Aug 20.
 	* This will extract all the *LUNA* source files , scale to 1x1x1 mm, and make a directory containing .png slice images. Lung segmentation mask images are also generated. This step also generates various CSV files for positive and negative examples.
 
 **step1b_preprocess_make_train_cubes.py**
-	The nodule detectors are trained on positive and negative 3d cubes which must be generated from the *LUNA16 and NDSB* datasets. step1b_preprocess_make_train_cubes.py takes the different csv files and cuts out 3d cubes from the patient slices. The cubes are saved in different directories. 
+	* The nodule detectors are trained on positive and negative 3d cubes which must be generated from the *LUNA16 and NDSB* datasets. step1b_preprocess_make_train_cubes.py takes the different csv files and cuts out 3d cubes from the patient slices. The cubes are saved in different directories. 
 
 **resources/step1_preprocess_mass_segmenter.py** 
 	generate the mass u-net trainset. The generated resized images + labels is provided in this archive so this step does not need to be run. However, this file can be used to regenerate the traindata.
