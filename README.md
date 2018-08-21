@@ -83,3 +83,7 @@ NDSB3: 1397 train，198 validate，506 test，且人工标注了训练集中754�
 
 LUNA16存在许多较小注释结节，且临床经验认为直径6mm以下的肺结节无危险。但NDSB3数据集中，存在较多的大直径结节且结节多与主支气管相连。因此，针对两个数据集的差异，需去除LUNA16数据集中直径6mm的结节，同时对NDSB3数据集进行人工标注。
 
+<<<<<<< HEAD
+=======
+These 3 models will be averaged into 1 final_submission.csv
+>>>>>>> deb4507069615b29eb998448e84e96efa08a6220

@@ -9,7 +9,7 @@ import shutil
 import random
 import math
 import multiprocessing
-from bs4 import BeautifulSoup #  conda install beautifulsoup4, coda install lxml
+from bs4 import BeautifulSoup #  conda install beautifulsoup4, conda install lxml
 import os
 import glob
 
@@ -601,7 +601,7 @@ def process_auto_candidates_patient(src_path, patient_id, sample_count=1000, can
     df_candidates = pandas.DataFrame(candidate_list, columns=["anno_index", "coord_x", "coord_y", "coord_z", "diameter", "malscore"])
     df_candidates.to_csv(dst_dir + patient_id + "_candidates_" + candidate_type + ".csv", index=False)
 
-
+# 1st
 def process_images(delete_existing=False, only_process_patient=None):
     if delete_existing and os.path.exists(settings.LUNA16_EXTRACTED_IMAGE_DIR):
         print("Removing old stuff..")
@@ -627,7 +627,7 @@ def process_images(delete_existing=False, only_process_patient=None):
                         continue
                 process_image(src_path)
 
-
+# 3rd
 def process_pos_annotations_patient2():
     candidate_index = 0
     only_patient = "197063290812663596858124411210"
@@ -642,7 +642,7 @@ def process_pos_annotations_patient2():
             process_pos_annotations_patient(src_path, patient_id)
             candidate_index += 1
 
-
+# 4th
 def process_excluded_annotations_patients(only_patient=None):
     candidate_index = 0
     for subject_no in range(settings.LUNA_SUBSET_START_INDEX, 10):
@@ -655,7 +655,7 @@ def process_excluded_annotations_patients(only_patient=None):
             process_excluded_annotations_patient(src_path, patient_id)
             candidate_index += 1
 
-
+# 6th
 def process_auto_candidates_patients():
     for subject_no in range(settings.LUNA_SUBSET_START_INDEX, 10):
         src_dir = settings.LUNA16_RAW_SRC_DIR + "subset" + str(subject_no) + "/"
@@ -667,7 +667,7 @@ def process_auto_candidates_patients():
             # process_auto_candidates_patient(src_path, patient_id, sample_count=500, candidate_type="white")
             process_auto_candidates_patient(src_path, patient_id, sample_count=200, candidate_type="edge")
 
-
+# 5th
 def process_luna_candidates_patients(only_patient_id=None):
     for subject_no in range(settings.LUNA_SUBSET_START_INDEX, 10):
         src_dir = settings.LUNA16_RAW_SRC_DIR + "subset" + str(subject_no) + "/"
@@ -680,7 +680,7 @@ def process_luna_candidates_patients(only_patient_id=None):
             print("Patient: ", patient_index, " ", patient_id)
             process_luna_candidates_patient(src_path, patient_id)
 
-
+# 2nd
 def process_lidc_annotations(only_patient=None, agreement_threshold=0):
     # lines.append(",".join())
     file_no = 0
