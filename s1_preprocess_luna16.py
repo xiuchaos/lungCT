@@ -12,10 +12,10 @@ import multiprocessing
 from bs4 import BeautifulSoup #  conda install beautifulsoup4, conda install lxml
 import os
 import glob
+#import pdb
 
 random.seed(1321)
 numpy.random.seed(1321)
-
 
 def find_mhd_file(patient_id):
     for subject_no in range(settings.LUNA_SUBSET_START_INDEX, 10):
@@ -25,7 +25,7 @@ def find_mhd_file(patient_id):
                 return src_path
     return None
 
-
+# output: patient_pos_lidc.csv, patient_neg_lidc.csv 
 def load_lidc_xml(xml_path, agreement_threshold=0, only_patient=None, save_nodules=False):
     pos_lines = []
     neg_lines = []
@@ -170,7 +170,6 @@ def load_lidc_xml(xml_path, agreement_threshold=0, only_patient=None, save_nodul
     # return [patient_id, spacing[0], spacing[1], spacing[2]]
     return pos_lines, neg_lines, extended_lines
 
-
 def normalize(image):
     MIN_BOUND = -1000.0
     MAX_BOUND = 400.0
@@ -179,7 +178,7 @@ def normalize(image):
     image[image < 0] = 0.
     return image
 
-
+# output: patient/imageslices.png (for each of 888 luna scans)
 def process_image(src_path):
     patient_id = ntpath.basename(src_path).replace(".mhd", "")
     print("Patient: ", patient_id)
@@ -215,7 +214,7 @@ def process_image(src_path):
         cv2.imwrite(dst_dir + "img_" + str(i).rjust(4, '0') + "_i.png", img * 255)
         cv2.imwrite(dst_dir + "img_" + str(i).rjust(4, '0') + "_m.png", mask * 255)
 
-
+# output: patient_annos_pos.csv   (for each of 888 luna scans)
 def process_pos_annotations_patient(src_path, patient_id):
     df_node = pandas.read_csv("resources/luna16_annotations/annotations.csv")
     dst_dir = settings.LUNA16_EXTRACTED_IMAGE_DIR + "_labels/"
@@ -290,7 +289,7 @@ def process_pos_annotations_patient(src_path, patient_id):
     df_annos.to_csv(settings.LUNA16_EXTRACTED_IMAGE_DIR + "_labels/" + patient_id + "_annos_pos.csv", index=False)
     return [patient_id, spacing[0], spacing[1], spacing[2]]
 
-
+# output: patient_annos_excluded.csv
 def process_excluded_annotations_patient(src_path, patient_id):
     df_node = pandas.read_csv("resources/luna16_annotations/annotations_excluded.csv")
     dst_dir = settings.LUNA16_EXTRACTED_IMAGE_DIR + "_labels/"
@@ -400,10 +399,11 @@ def process_excluded_annotations_patient(src_path, patient_id):
     df_annos.to_csv(settings.LUNA16_EXTRACTED_IMAGE_DIR + "_labels/" + patient_id + "_annos_excluded.csv", index=False)
     return [patient_id, spacing[0], spacing[1], spacing[2]]
 
-
+# output: patient_candidates_luna.csv
 def process_luna_candidates_patient(src_path, patient_id):
-    dst_dir = settings.LUNA16_EXTRACTED_IMAGE_DIR + "/_labels/"
+    dst_dir = settings.LUNA16_EXTRACTED_IMAGE_DIR + "_labels/"
     img_dir = dst_dir + patient_id + "/"
+    #pdb.set_trace()
     df_pos_annos = pandas.read_csv(dst_dir + patient_id + "_annos_pos_lidc.csv")
     if not os.path.exists(dst_dir):
         os.mkdir(dst_dir)
@@ -413,12 +413,14 @@ def process_luna_candidates_patient(src_path, patient_id):
     if os.path.exists(manual_path):
         pos_annos_manual = pandas.read_csv(manual_path)
 
+    #pdb.set_trace()
+
     itk_img = SimpleITK.ReadImage(src_path)
     img_array = SimpleITK.GetArrayFromImage(itk_img)
     print("Img array: ", img_array.shape)
     print("Pos annos: ", len(df_pos_annos))
-
-    num_z, height, width = img_array.shape        #heightXwidth constitute the transverse plane
+  
+    num_z, height, width = img_array.shape         # height X width constitute the transverse plane
     origin = numpy.array(itk_img.GetOrigin())      # x,y,z  Origin in world coordinates (mm)
     print("Origin (x,y,z): ", origin)
     spacing = numpy.array(itk_img.GetSpacing())    # spacing of voxels in world coor. (mm)
@@ -426,7 +428,7 @@ def process_luna_candidates_patient(src_path, patient_id):
     rescale = spacing / settings.TARGET_VOXEL_MM
     print("Rescale: ", rescale)
 
-    direction = numpy.array(itk_img.GetDirection())      # x,y,z  Origin in world coordinates (mm)
+    direction = numpy.array(itk_img.GetDirection()) # x,y,z  Origin in world coordinates (mm)
     print("Direction: ", direction)
     flip_direction_x = False
     flip_direction_y = False
@@ -507,7 +509,7 @@ def process_luna_candidates_patient(src_path, patient_id):
     df_candidates = pandas.DataFrame(candidate_list, columns=["anno_index", "coord_x", "coord_y", "coord_z", "diameter", "malscore"])
     df_candidates.to_csv(dst_dir + patient_id + "_candidates_luna.csv", index=False)
 
-
+# output: patient_candidates_edge.csv
 def process_auto_candidates_patient(src_path, patient_id, sample_count=1000, candidate_type="white"):
     dst_dir = settings.LUNA16_EXTRACTED_IMAGE_DIR + "/_labels/"
     img_dir = settings.LUNA16_EXTRACTED_IMAGE_DIR + patient_id + "/"
@@ -616,6 +618,14 @@ def process_images(delete_existing=False, only_process_patient=None):
         src_dir = settings.LUNA16_RAW_SRC_DIR + "subset" + str(subject_no) + "/"
         src_paths = glob.glob(src_dir + "*.mhd")
 
+        '''
+        # for debug, dive into one image
+        for src_path in src_paths:
+            print(src_path)
+            pdb.set_trace() # use s to step in here
+            process_image(src_path)
+
+        '''
         if only_process_patient is None and True:
             pool = multiprocessing.Pool(settings.WORKER_POOL_SIZE)
             pool.map(process_image, src_paths)
@@ -626,6 +636,7 @@ def process_images(delete_existing=False, only_process_patient=None):
                     if only_process_patient not in src_path:
                         continue
                 process_image(src_path)
+        #'''
 
 # 3rd
 def process_pos_annotations_patient2():
@@ -680,7 +691,7 @@ def process_luna_candidates_patients(only_patient_id=None):
             print("Patient: ", patient_index, " ", patient_id)
             process_luna_candidates_patient(src_path, patient_id)
 
-# 2nd
+# 2nd  output: lidc_annotations.csv (input: lidc xml files)
 def process_lidc_annotations(only_patient=None, agreement_threshold=0):
     # lines.append(",".join())
     file_no = 0
@@ -707,18 +718,50 @@ def process_lidc_annotations(only_patient=None, agreement_threshold=0):
 
 
 if __name__ == "__main__":
-    if True:
+    if False:
+        # output: patient/image slices (input: luna_raw)
         only_process_patient = None
         process_images(delete_existing=False, only_process_patient=only_process_patient)
 
-    if True:
+    if False:
+        # -----------------------------------------------
+        # LIDC: enriched nodule information (LIDC coords)
+        # input:  xml files         
+        # output: csv files, lidc_annotations.csv 
+        #                    patient_annos_pos_lidc.csv
+        #                    patient_annos_neg_lidc.csv
+        # ----------------------------------------------
         process_lidc_annotations(only_patient=None, agreement_threshold=0)
 
-    if True:
+    if False:
+        # -----------------------------------------------
+        # Luna:simplified nodule information (Luna coords)
+        # input:  luna_raw / annotations.csv   
+        # output(luna2lidc): patient_annos_pos.csv 
+        # -----------------------------------------------
         process_pos_annotations_patient2()
+
+        # -----------------------------------------------
+        # Luna:simplified nodule information (Luna coords)
+        # input:  luna_raw / annotations_excluded.csv   
+        # output(luna2lidc): patient_annos_excluded.csv 
+        # -----------------------------------------------
         process_excluded_annotations_patients(only_patient=None)
 
     if True:
+        # -----------------------------------------------
+        # Luna:simplified nodule information (Luna coords)
+        # input:  luna_raw/  candidates_V2.csv 
+        # output(luna2lidc): patient_candidates_luna.csv 
+        # -----------------------------------------------
         process_luna_candidates_patients(only_patient_id=None)
-    if True:
+
+    if False:
+        # -----------------------------------------------
+        # 200 non-module rois
+        # input: patient_annos_pos_lidc.csv
+        #        patient_manual.csv
+        #
+        # output: patient_candidates_edge.csv 
+        # -----------------------------------------------
         process_auto_candidates_patients()
