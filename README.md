@@ -1,13 +1,10 @@
 # lungCT
 
-Second Prize [Julian's Blog] http://juliandewit.github.io/kaggle-ndsb2017/
+Second Prize [Julian's Blog](http://juliandewit.github.io/kaggle-ndsb2017/)
 
-First  Prize [Liao Fangzhou] https://arxiv.org/pdf/1711.08324v1.pdf   
-							https://github.com/lfz/DSB2017
+First  Prize [Liao Fangzhou](https://github.com/lfz/DSB2017)
 
-Related Blog: https://www.jianshu.com/p/50158f8daf0d    
-              https://blog.csdn.net/qq_25624231/article/details/79632072
-start from Aug 20.
+Related Blog: https://www.jianshu.com/p/50158f8daf0d and https://blog.csdn.net/qq_25624231/article/details/79632072
 
 ### Goal
 
@@ -31,7 +28,6 @@ To spoonfeed a neural network with examples with a better snr and a more direct 
 ### 1. Preprocessing 
 
 **step1_preprocess_ndsb.py**
-
 This will extract all the *ndsb* dicom files , scale to 1x1x1 mm, and make a directory containing .png slice images. Lung segmentation mask images are also generated. They will be used later in the process for faster predicting.
 
 **step1_preprocess_luna16.py**
@@ -87,3 +83,9 @@ LUNA16 888个病例，标记了1186个肺结节；
 NDSB3: 1397 train，198 validate，506 test，且人工标注了训练集中754个结节和验证集中78个结节。
 
 LUNA16存在许多较小注释结节，且临床经验认为直径6mm以下的肺结节无危险。但NDSB3数据集中，存在较多的大直径结节且结节多与主支气管相连。因此，针对两个数据集的差异，需去除LUNA16数据集中直径6mm的结节，同时对NDSB3数据集进行人工标注。
+
+### Progress
+
+* Mon-Aug 20, read web information
+* Tue, read blog, download related papers, clear about the outline of this problem.
+* Wed, ....
