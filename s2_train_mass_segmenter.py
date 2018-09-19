@@ -1,6 +1,5 @@
 import settings
 import helpers
-
 import os
 import glob
 import random
@@ -9,7 +8,8 @@ import cv2
 import numpy
 from typing import List, Tuple
 from keras.optimizers import Adam, SGD
-from keras.layers import Input, Convolution2D, MaxPooling2D, UpSampling2D, merge, BatchNormalization, SpatialDropout2D
+from keras.layers import Input, Convolution2D, MaxPooling2D, UpSampling2D, \
+                         merge, BatchNormalization, SpatialDropout2D
 from keras.models import Model
 from keras import backend as K
 from keras.callbacks import ModelCheckpoint, Callback
@@ -17,6 +17,7 @@ from scipy.ndimage.interpolation import map_coordinates
 from scipy.ndimage.filters import gaussian_filter
 import pandas
 import shutil
+import pdb
 
 MEAN_FRAME_COUNT = 1
 CHANNEL_COUNT = 1
@@ -44,6 +45,7 @@ def random_scale_img(img, xy_range, lock_xy=False):
         scaled_width = int(org_width * scale_x)
         scaled_height = int(org_height * scale_y)
         scaled_img = cv2.resize(img_inst, (scaled_width, scaled_height), interpolation=cv2.INTER_CUBIC)
+
         if scaled_width < org_width:
             extend_left = (org_width - scaled_width) / 2
             extend_right = org_width - extend_left - scaled_width
@@ -178,11 +180,13 @@ def prepare_image_for_net(img):
         img = img.reshape(1, img.shape[-2], img.shape[-1], 1)
     return img
 
-
+# Part1 - Get train-holdout files
 def get_train_holdout_files(model_type, holdout, train_percentage=80, frame_count=8):
     print("Get train/holdout files.")
     file_paths = glob.glob("resources/segmenter_traindata/" + "*_1.png")
     file_paths.sort()
+    #pdb.set_trace()
+
     train_res = []
     holdout_res = []
     for index, file_path in enumerate(file_paths):
@@ -221,6 +225,8 @@ def dice_coef_np(y_true, y_pred):
 def dice_coef_loss(y_true, y_pred):
     return -dice_coef(y_true, y_pred)
 
+# dumper = DumpPredictions(holdout_files[::10], model_type)
+# DumpPredictions is subclass of Callback(superclass)
 
 class DumpPredictions(Callback):
 
@@ -254,7 +260,8 @@ class DumpPredictions(Callback):
             # cv2.imwrite("workdit/segmenter/img_{0:03d}_{1:02d}_o.png".format(epoch, i), y)
             # cv2.imwrite("workdit/segmenter/img_{0:03d}_{1:02d}_p.png".format(epoch, i), y_pred)
 
-
+# Part 2 - Image generator
+# tmp_gen = image_generator(train_files[:2], 2, True, model_type)
 def image_generator(batch_files, batch_size, train_set, model_type):
     global ELASTIC_INDICES
     while True:
@@ -292,7 +299,7 @@ def image_generator(batch_files, batch_size, train_set, model_type):
                 img = prepare_image_for_net(img)
                 images[index] = img
 
-            # helpers_augmentation.dump_augmented_image(img, mean_img=None, target_path="c:\\tmp\\" + batch_file[0])
+            # helpers_augmentation.dump_augmented_ibreamage(img, mean_img=None, target_path="c:\\tmp\\" + batch_file[0])
             # overlay = overlay[crop_y: crop_y + settings.TRAIN_IMG_HEIGHT3D, crop_x: crop_x + settings.TRAIN_IMG_WIDTH3D]
             overlay = prepare_image_for_net(overlay)
             # overlay = overlay.reshape(1, overlay.shape[-3] * overlay.shape[-2])
@@ -310,7 +317,7 @@ def image_generator(batch_files, batch_size, train_set, model_type):
                 img_list = []
                 overlay_list = []
 
-
+# Part 3 - Get unet
 def get_unet(learn_rate, load_weights_path=None) -> Model:
     inputs = Input((settings.SEGMENTER_IMG_SIZE, settings.SEGMENTER_IMG_SIZE, CHANNEL_COUNT))
     filter_size = 32
@@ -395,6 +402,7 @@ def train_model(holdout, model_type, continue_from=None):
     train_files, holdout_files = get_train_holdout_files( model_type, holdout, train_percentage, frame_count=CHANNEL_COUNT)
     # train_files = train_files[:100]
     # holdout_files = train_files[:10]
+    # pdb.set_trace()
 
     tmp_gen = image_generator(train_files[:2], 2, True, model_type)
     for i in range(10):
@@ -410,14 +418,19 @@ def train_model(holdout, model_type, continue_from=None):
     train_gen = image_generator(train_files, batch_size, True, model_type)
     holdout_gen = image_generator(holdout_files, batch_size, False, model_type)
 
+    # pdb.set_trace()
+
     if continue_from is None:
         model = get_unet(0.001)
     else:
         model = get_unet(0.0001)
         model.load_weights(continue_from)
 
-    checkpoint1 = ModelCheckpoint("workdir/" + model_type +"_model_h" + str(holdout) + "_{epoch:02d}-{val_loss:.2f}.hd5", monitor='val_loss', verbose=1, save_best_only=True, save_weights_only=False, mode='auto', period=1)
-    checkpoint2 = ModelCheckpoint("workdir/" + model_type +"_model_h" + str(holdout) + "_best.hd5", monitor='val_loss', verbose=1, save_best_only=True, save_weights_only=False, mode='auto', period=1)
+    checkpoint1 = ModelCheckpoint("workdir/" + model_type +"_model_h" + str(holdout) + "_{epoch:02d}-{val_loss:.2f}.hd5", \
+                            monitor='val_loss', verbose=1, save_best_only=True, save_weights_only=False, mode='auto', period=1)
+
+    checkpoint2 = ModelCheckpoint("workdir/" + model_type +"_model_h" + str(holdout) + "_best.hd5", \
+                            monitor='val_loss', verbose=1, save_best_only=True, save_weights_only=False, mode='auto', period=1)
     files = []
     idx = 0
     while (idx < (len(holdout_files))):
@@ -426,14 +439,19 @@ def train_model(holdout, model_type, continue_from=None):
     dumper = DumpPredictions(holdout_files[::10], model_type)
     epoch_div = 1
     epoch_count = 200 if model_type == "masses" else 50
-    model.fit_generator(train_gen, len(train_files) / epoch_div, epoch_count, validation_data=holdout_gen, nb_val_samples=len(holdout_files) / epoch_div, callbacks=[checkpoint1, checkpoint2, dumper])
+    model.fit_generator(train_gen, len(train_files) / epoch_div, epoch_count, \
+                        validation_data=holdout_gen, nb_val_samples=len(holdout_files) / epoch_div, \
+                        callbacks=[checkpoint1, checkpoint2, dumper])
+
     if not os.path.exists("models"):
         os.mkdir("models")
-    shutil.copy("workdir/" + model_type +"_model_h" + str(holdout) + "_best.hd5", "models/" + model_type +"_model_h" + str(holdout) + "_best.hd5")
+    shutil.copy("workdir/" + model_type +"_model_h" + str(holdout) + "_best.hd5", \
+                        "models/" + model_type +"_model_h" + str(holdout) + "_best.hd5")
 
 def predict_patients(patients_dir, model_path, holdout, patient_predictions, model_type):
     model = get_unet(0.001)
     model.load_weights(model_path)
+
     for item_name in os.listdir(patients_dir):
         if not os.path.isdir(patients_dir + item_name):
             continue
@@ -458,6 +476,7 @@ def predict_patients(patients_dir, model_path, holdout, patient_predictions, mod
         slices = glob.glob(patient_dir + "*" + img_type + ".png")
         if model_type == "emphysema":
             slices = slices[int(len(slices) / 2):]
+
         for img_path in slices:
             src_img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
             src_img = cv2.resize(src_img, dsize=(settings.SEGMENTER_IMG_SIZE, settings.SEGMENTER_IMG_SIZE))
@@ -494,6 +513,8 @@ if __name__ == "__main__":
             patient_predictions_global = []
             for holdout_no in [0, 1, 2]:
                 patient_base_dir = settings.NDSB3_EXTRACTED_IMAGE_DIR
-                predict_patients(patients_dir=patient_base_dir, model_path="models/" + model_type_name + "_model_h" + str(holdout_no) + "_best.hd5", holdout=holdout_no, patient_predictions=patient_predictions_global, model_type=model_type_name)
+                predict_patients(patients_dir=patient_base_dir, \
+                    model_path="models/" + model_type_name + "_model_h" + str(holdout_no) + "_best.hd5", \
+                    holdout=holdout_no, patient_predictions=patient_predictions_global, model_type=model_type_name)
 
 

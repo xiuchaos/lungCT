@@ -41,9 +41,10 @@ def get_cube_from_img(img3d, center_x, center_y, center_z, block_size):
     res = img3d[start_z:start_z + block_size, start_y:start_y + block_size, start_x:start_x + block_size]
     return res
 
-
+# not used ...
 def make_pos_annotation_images():
-    src_dir = settings.LUNA_16_TRAIN_DIR2D2 + "metadata/"
+    #src_dir = settings.LUNA_16_TRAIN_DIR2D2 + "metadata/"
+    src_dir = settings.LUNA16_EXTRACTED_IMAGE_DIR + "_labels/"
     dst_dir = settings.BASE_DIR_SSD + "luna16_train_cubes_pos/"
     for file_path in glob.glob(dst_dir + "*.*"):
         os.remove(file_path)
@@ -77,6 +78,9 @@ def make_pos_annotation_images():
 
 # 1st
 def make_annotation_images_lidc():
+    #https://github.com/juliandewit/kaggle_ndsb2017/issues/2
+    #src_dir = settings.LUNA16_EXTRACTED_IMAGE_DIR + "_labels/"
+
     src_dir = settings.LUNA16_EXTRACTED_IMAGE_DIR + "_labels/"
 
     dst_dir = settings.BASE_DIR_SSD + "generated_traindata/luna16_train_cubes_lidc/"
@@ -268,7 +272,7 @@ if __name__ == "__main__":
     if not os.path.exists(settings.BASE_DIR_SSD + "generated_traindata/"):
         os.mkdir(settings.BASE_DIR_SSD + "generated_traindata/")
 
-    if False:
+    if True:
         make_annotation_images_lidc()
     if False:
         make_pos_annotation_images_manual()
@@ -276,7 +280,7 @@ if __name__ == "__main__":
     #     make_pos_annotation_images()  # not used anymore
     if False:
         make_candidate_auto_images(["falsepos", "luna", "edge"])
-    if True:
+    if False:
         make_pos_annotation_images_manual_ndsb3()  # for second model
 
 

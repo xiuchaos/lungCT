@@ -12,7 +12,7 @@ import multiprocessing
 from bs4 import BeautifulSoup #  conda install beautifulsoup4, conda install lxml
 import os
 import glob
-#import pdb
+import pdb
 
 random.seed(1321)
 numpy.random.seed(1321)
@@ -626,7 +626,7 @@ def process_images(delete_existing=False, only_process_patient=None):
             process_image(src_path)
 
         '''
-        if only_process_patient is None and True:
+        if only_process_patient is None and False:
             pool = multiprocessing.Pool(settings.WORKER_POOL_SIZE)
             pool.map(process_image, src_paths)
         else:
@@ -635,6 +635,7 @@ def process_images(delete_existing=False, only_process_patient=None):
                 if only_process_patient is not None:
                     if only_process_patient not in src_path:
                         continue
+                pdb.set_trace()
                 process_image(src_path)
         #'''
 
@@ -718,7 +719,7 @@ def process_lidc_annotations(only_patient=None, agreement_threshold=0):
 
 
 if __name__ == "__main__":
-    if False:
+    if True:
         # output: patient/image slices (input: luna_raw)
         only_process_patient = None
         process_images(delete_existing=False, only_process_patient=only_process_patient)
